@@ -205,8 +205,10 @@ root_agent = Workflow(
     name="smart_schedule_workflow",
     edges=[
         (START, security_checkpoint),
-        (security_checkpoint, orchestrator, "proceed"),
-        (security_checkpoint, final_node, "SECURITY_EVENT"),
+        (security_checkpoint, {
+            "proceed": orchestrator,
+            "SECURITY_EVENT": final_node
+        }),
         (orchestrator, human_approval),
         (human_approval, final_node)
     ]
