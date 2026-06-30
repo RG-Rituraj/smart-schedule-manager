@@ -78,11 +78,9 @@ orchestrator = LlmAgent(
     
     Use timezone_resolver first to get the correct time options.
     Then, pass the selected time options to draft_generator to create the email draft.
-    Finally, return the structured output matching the output schema.
+    Finally, output the schedule proposal details (proposed times in PST/EST) and the email draft you generated.
     """,
-    tools=[AgentTool(timezone_resolver), AgentTool(draft_generator)],
-    output_schema=MeetingProposal,
-    output_key="proposal"
+    tools=[AgentTool(timezone_resolver), AgentTool(draft_generator)]
 )
 
 # 4. Workflow nodes (functions)
@@ -131,8 +129,14 @@ def security_checkpoint(ctx: Context, node_input: types.Content) -> Event:
         route="proceed"
     )
 
-async def human_approval(ctx: Context, node_input: MeetingProposal) -> AsyncGenerator[Event, None]:
+async def human_approval(ctx: Context, node_input: types.Content) -> AsyncGenerator[Event, None]:
     """Requests human approval for the proposed meeting and email draft."""
+    text = ""
+    if hasattr(node_input, 'parts'):
+        text = "\n".join([p.text for p in node_input.parts if p.text])
+    elif isinstance(node_input, str):
+        text = node_input
+
     if ctx.resume_inputs and "approved" in ctx.resume_inputs:
         decision = ctx.resume_inputs["approved"]
         if decision.lower() in ["yes", "approve", "y"]:
@@ -140,11 +144,11 @@ async def human_approval(ctx: Context, node_input: MeetingProposal) -> AsyncGene
             yield Event(
                 content=types.Content(
                     role='model',
-                    parts=[types.Part.from_text(f"✅ Meeting approved! Proceeding with email draft for {node_input.recipient_email}...")],
+                    parts=[types.Part.from_text(f"✅ Meeting approved! Proceeding with email draft...")],
                 )
             )
             yield Event(
-                output=node_input,
+                output=text,
                 route="approved"
             )
         else:
@@ -156,7 +160,7 @@ async def human_approval(ctx: Context, node_input: MeetingProposal) -> AsyncGene
                 )
             )
             yield Event(
-                output=node_input,
+                output=text,
                 route="denied"
             )
         return
@@ -166,12 +170,8 @@ async def human_approval(ctx: Context, node_input: MeetingProposal) -> AsyncGene
         content=types.Content(
             role='model',
             parts=[types.Part.from_text(
-                f"Proposed Meeting Details:\n"
-                f"- Title: {node_input.title}\n"
-                f"- Recipient: {node_input.recipient_email}\n"
-                f"- Time (PST): {node_input.proposed_time_pst}\n"
-                f"- Time (EST): {node_input.proposed_time_est}\n\n"
-                f"Draft Email:\n```\n{node_input.email_draft}\n```\n\n"
+                f"Proposed Meeting Details:\n\n"
+                f"{text}\n\n"
                 f"Approve this meeting? (yes/no)"
             )]
         )
@@ -183,7 +183,7 @@ async def human_approval(ctx: Context, node_input: MeetingProposal) -> AsyncGene
 
 def final_node(ctx: Context, node_input: Any) -> Event:
     """Formats the final workflow response."""
-    if isinstance(node_input, str):
+    if isinstance(node_input, str) and node_input.startswith("Security Violation"):
         return Event(
             content=types.Content(role='model', parts=[types.Part.from_text(node_input)]),
             output=node_input
@@ -191,7 +191,7 @@ def final_node(ctx: Context, node_input: Any) -> Event:
         
     approved = ctx.state.get("approved", False)
     if approved:
-        message = f"Process finished. The meeting '{node_input.title}' was approved and scheduled for {node_input.recipient_email}."
+        message = "Process finished. The meeting was approved and scheduled."
     else:
         message = "Process finished. The meeting request was rejected."
         
