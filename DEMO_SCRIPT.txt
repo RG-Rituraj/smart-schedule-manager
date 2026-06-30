@@ -1,0 +1,29 @@
+[0:00 — HOOK]
+How much time do you lose coordinates timezones, checks calendar conflicts, and formats polite emails every time you need to schedule a simple sync with a client? If you work globally, this administrative waste adds up to hours every week.
+
+[0:20 — WHAT IT IS]
+That is why I built the Smart Schedule Manager. It is a secure, automated Concierge Agent designed to handle timezone conversions, consult calendars for conflicts, and draft polished emails for client validation, keeping you fully in control.
+
+[0:40 — SHOW THE BANNER]
+(show assets/cover_page_banner.png)
+As you can see on the screen, this project is built to make calendar management automated, secure, and intelligent, combining multi-agent graphs with external tooling.
+
+[1:00 — ARCHITECTURE]
+(show assets/architecture_diagram.png)
+Let me walk you through the architecture. It starts with the user query passing through a security checkpoint node, which redacts emails for PII safety and checks for malicious inputs. (pause)
+From there, the query is passed to the orchestrator agent, which delegates tasks to two sub-agents: the timezone resolver and the draft generator. (pause)
+These sub-agents communicate with our local Model Context Protocol server to look up contact timezones, list calendar conflicts, and book events. (pause)
+Finally, before sending anything, the flow routes to a human approval node which pauses the session, prompts you for validation, and only completes once you give the green light.
+
+[2:00 — LIVE DEMO]
+(switch to playground at localhost:18081)
+Let's see it in action. I will input our first test case: "Schedule a 30-minute sync meeting with Bob (bob@example.com) for tomorrow afternoon to discuss project milestones." (pause)
+Notice how the security node immediately runs, redacting Bob's email address in the log. Next, the timezone resolver queries the MCP server to find Bob's timezone and checks our calendar database. Since there are no conflicts, it proposes a slot. The draft generator then writes the invitation. (pause)
+Right here, the playground pauses. It is waiting for my approval. I will type "yes" in the chat. (pause)
+And there we go! The workflow completes, confirming the email was drafted and the event was booked.
+
+[3:00 — SECURITY & MCP]
+What makes this system robust is its layered security checkpoint, which filters prompt injections and creates a JSON audit trail for compliance. The MCP server cleanly decouples the agent's logic from local calendar resources.
+
+[3:30 — IMPACT / CLOSE]
+Busy professionals, remote support teams, and executives benefit from this immediate scheduling assistant. It turns a multi-step chore into a single-turn approval. Thank you!
