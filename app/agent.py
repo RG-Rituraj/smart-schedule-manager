@@ -154,7 +154,7 @@ async def human_approval(ctx: Context, node_input: Any) -> AsyncGenerator[Event,
             yield Event(
                 content=types.Content(
                     role='model',
-                    parts=[types.Part.from_text(f"✅ Meeting approved! Proceeding with email draft...")],
+                    parts=[types.Part.from_text(text=f"✅ Meeting approved! Proceeding with email draft...")],
                 )
             )
             yield Event(
@@ -166,7 +166,7 @@ async def human_approval(ctx: Context, node_input: Any) -> AsyncGenerator[Event,
             yield Event(
                 content=types.Content(
                     role='model',
-                    parts=[types.Part.from_text("❌ Meeting request was denied by human.")],
+                    parts=[types.Part.from_text(text="❌ Meeting request was denied by human.")],
                 )
             )
             yield Event(
@@ -180,7 +180,7 @@ async def human_approval(ctx: Context, node_input: Any) -> AsyncGenerator[Event,
         content=types.Content(
             role='model',
             parts=[types.Part.from_text(
-                f"Proposed Meeting Details:\n\n"
+                text=f"Proposed Meeting Details:\n\n"
                 f"{text}\n\n"
                 f"Approve this meeting? (yes/no)"
             )]
@@ -195,7 +195,7 @@ def final_node(ctx: Context, node_input: Any) -> Event:
     """Formats the final workflow response."""
     if isinstance(node_input, str) and node_input.startswith("Security Violation"):
         return Event(
-            content=types.Content(role='model', parts=[types.Part.from_text(node_input)]),
+            content=types.Content(role='model', parts=[types.Part.from_text(text=node_input)]),
             output=node_input
         )
         
@@ -206,7 +206,7 @@ def final_node(ctx: Context, node_input: Any) -> Event:
         message = "Process finished. The meeting request was rejected."
         
     return Event(
-        content=types.Content(role='model', parts=[types.Part.from_text(message)]),
+        content=types.Content(role='model', parts=[types.Part.from_text(text=message)]),
         output=message
     )
 
