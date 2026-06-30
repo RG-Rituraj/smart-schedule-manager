@@ -129,13 +129,23 @@ def security_checkpoint(ctx: Context, node_input: types.Content) -> Event:
         route="proceed"
     )
 
-async def human_approval(ctx: Context, node_input: types.Content) -> AsyncGenerator[Event, None]:
+async def human_approval(ctx: Context, node_input: Any) -> AsyncGenerator[Event, None]:
     """Requests human approval for the proposed meeting and email draft."""
     text = ""
-    if hasattr(node_input, 'parts'):
+    if hasattr(node_input, 'parts') and node_input.parts:
         text = "\n".join([p.text for p in node_input.parts if p.text])
     elif isinstance(node_input, str):
         text = node_input
+    elif isinstance(node_input, dict) and "parts" in node_input:
+        text_parts = []
+        for p in node_input["parts"]:
+            if isinstance(p, dict) and "text" in p:
+                text_parts.append(p["text"])
+            elif isinstance(p, str):
+                text_parts.append(p)
+        text = "\n".join(text_parts)
+    else:
+        text = str(node_input)
 
     if ctx.resume_inputs and "approved" in ctx.resume_inputs:
         decision = ctx.resume_inputs["approved"]
